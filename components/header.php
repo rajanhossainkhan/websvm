@@ -1,3 +1,6 @@
+<?php
+	include("../global.config.php");
+?>
 <html>
 <header>
 <title>WebSVM</title>
