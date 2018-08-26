@@ -30,7 +30,7 @@
 
 			if($error == ""){
 				move_uploaded_file($file_tmp,"../Uploads/TrainingFiles/".$file_name);
-				echo "File is succesfully uploaded.";
+				echo "File is succesfully uploaded. <a href='training.php' class='btn btn-primary'>Proceed to Training Page</a>";
 			}else{
 				echo $error;
 			}
@@ -51,7 +51,7 @@
 		    <br />
 		    <input type="file" name="trainingFile" class="form-control">
 		    <br />
-		    <input type="submit" value="train" name="frmSubmit" class="btn btn-primary">
+		    <input type="submit" value="Upload Training File" name="frmSubmit" class="btn btn-primary">
 		</form>
 	</div>
 </body>
