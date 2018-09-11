@@ -50,7 +50,7 @@
 
 			if($error == ""){
 				move_uploaded_file($file_tmp,"../TestDatasets/".$file_name);
-				echo "File is succesfully uploaded. <form method='post'><input type='submit' name='predictSubmit' class='btn btn-primary' value='Run Predict Command'></form>";
+				echo "File is succesfully uploaded. ";
 			}else{
 				echo $error;
 			}
@@ -63,11 +63,15 @@
 
 		//Grab test file
 		$test_files = scandir($test_dataset_directory);
-		$test_file = $test_files[3];
+		$test_file = $test_files[2];
+
+		//Grab training files
+		$training_files = scandir($files_directory);
+		$training_file = $training_files[3];
 
 		//Use generated model file in the previous step
 		//Write the output file to OutputFiles directory
-		shell_exec("../libsvm/./svm-predict " . $test_dataset_directory . $test_file ." ../LearningModels/". $model_file ." " . $output_directory . $training_file . ".output");
+		shell_exec("../libsvm/./svm-predict " . $test_dataset_directory . $test_file ." ../LearningModels/". $model_file ." " . $output_directory . "output." .$training_file);
 	}
 ?>
 
@@ -88,6 +92,8 @@
 		    <br />
 		    <input type="submit" value="Upload" name="frmSubmit" class="btn btn-primary">
 		</form>
+
+		<form method='post'><input type='submit' name='predictSubmit' class='btn btn-primary' value='Run Predict Command'></form>
 	</div>
 </body>
 </html>
