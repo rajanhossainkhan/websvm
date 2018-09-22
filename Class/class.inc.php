@@ -10,7 +10,7 @@ class Config {
 
     //Opening connection
     public function open() {
-        $con = mysqli_connect("localhost", "root", "root", "db_jrs");
+        $con = mysqli_connect("localhost", "root", "root", "websvm");
         return $con;
     }
 
