@@ -1,7 +1,14 @@
 <?php
+session_start();
 include("../components/header.php");
 include("../Class/class.inc.php");
 $con = new Config();
+
+$return_back_url = "";
+if (isset($_GET["return_back_url"])){
+	$return_back_url = $_GET["return_back_url"];
+}
+
 
 if (isset($_POST["btn_login"])){
 	extract($_POST);
@@ -11,7 +18,14 @@ if (isset($_POST["btn_login"])){
 	} else {
 		$output = $con->SelectAllByCondition("user_accounts", " email_address='$email' AND password='$password'");
 		if (count($output) > 0){
-			$con->redirect('profile.php');
+			$user_id = $output[0]->user_id;
+			$_SESSION["user_id"] = $user_id;
+			if ($return_back_url == ""){
+				$con->redirect('profile.php');
+			} else {
+				$con->redirect($return_back_url . ".php");
+			}
+
 		} else {
 			$err = "<span style='color:red;'>Email and password did not match.</span>";
 		}

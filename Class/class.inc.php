@@ -629,13 +629,11 @@ class Config {
     }
 
     function authenticate() {
-
-        if (!isset($_SESSION['emp_code']) || (trim($_SESSION['emp_code']) == '')) {
-            $err = 'Login Session Expired Please Login';
+        if (!isset($_SESSION['user_id']) || (trim($_SESSION['user_id']) == '')) {
             session_write_close();
-            return 1;
-        } else {
             return 0;
+        } else {
+            return 1;
         }
     }
 
