@@ -21,9 +21,10 @@ $TargetFile = "";
 $FileNameOnly = "";
 if (isset($_GET["TargetFile"]) && $_GET["TargetFile"] != ""){
 	$TargetFile = $_GET["TargetFile"];
-	$FileNameOnly =  explode("_", $TargetFile);
+	$FileNameOnly_array =  explode("_", $TargetFile);
+	array_shift($FileNameOnly_array);
+	$FileNameOnly_final = implode($FileNameOnly_array, "_");
 }
-
 
 /**
  * Read file directory and show the file to user
@@ -48,22 +49,36 @@ if (isset($_POST["frmSubmit"])){
 	 * Depending on the file size, trainign might take longer time
 	 */
 
-	/**
-	 * Assume uploaded file is a right svm file
-	 * Run train command against it.
-	 */
-	shell_exec("../libsvm/./svm-train " . $files_directory . $training_file ." ../LearningModels/". $training_file .".model");
+	//Create a directory or check exisiting
+	//Create directory for the user if not yet created
+	$file_path = '../LearningModels/' . $_SESSION['user_id'];
+	if (!file_exists($file_path)) {
+		mkdir($file_path, 0777, true);
+	} 
+	$fully_qualified_path = $file_path . "/" . $TargetFile . ".model";
 
-	//Check the directory if a model file is created
-	//If so, operation was okay and display a message with a link to predict page
-	$model_files = scandir("../LearningModels/");
-	if (count($model_files) > 0){
-		$train_flag = 1;
+	//Make record in database
+	//Insert a record in the db for uploaded file for the user
+	$insert_array = array(
+		"FileNameGiven" => $trainingFileTitle,
+		"FileName" => $FileNameOnly_final,
+		"FileType" => "model",
+		"FilePath" => $fully_qualified_path,
+		"UserId" => $user_id_session,
+		"UpdateDate" => date("Y-m-d H:i:s"),
+		"UpdateBy" => $user_id_session
+	);
+	if ($con->insert("UserFiles", $insert_array) == 1){
+		/**
+		 * Assume uploaded file is a right svm file
+		 * Run train command against it.
+		 */
+		shell_exec("../libsvm/./svm-train " . $files_directory . $user_id_session . "/" . $TargetFile . " " . $file_path . "/" .$TargetFile .".model");
 		$msg = "Training is successfull. A model file is generated
 		<a href='predict.php' class='btn btn-primary'> Proceed to Predict</a>";
-	}
-
-
+	} else {
+		$err = "Something went wrong. Training failed.";
+	}	
 }
 ?>
 
@@ -76,7 +91,7 @@ if (isset($_POST["frmSubmit"])){
 		<form method="POST">
 			Uploaded Sparse Matrix File-
 			<span style="color:blue; font-size:18px; font-weight: bold;">
-				<?php echo  $FileNameOnly;?>
+				<?php echo  $FileNameOnly_final;?>
 			</span>
 		    <br />
 		    <br />
