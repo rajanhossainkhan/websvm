@@ -19,10 +19,6 @@ if (!isset($_SESSION['user_id'])){
 
 
 
-
-//Grab model file
-$model_file = $model_files[3];
-
 //Check the user from session and find reight directory
 //Grab the file name from URL and use it to predict
 $TargetFile = "";
@@ -43,13 +39,7 @@ if (isset($_GET["TargetFile"]) && $_GET["TargetFile"] != ""){
  * Read file directory and show the file to user
  */
 $msg = "";
-$train_flag = 0;
-$dir    		= $models_directory . "/" . $user_id_session . "/";
-$model_filesArray = scandir($dir);
-
-//Search the array and fetch target file
-$ModelFile = $model_filesArray[array_search($TargetFile .".model", $model_filesArray)];
-
+$error = "";
 
 
 /**
@@ -69,10 +59,10 @@ if (isset($_POST["frmSubmit"])){
 
 		//Retrieve file information and save into db
 		$file_name = $_FILES['testFile']['name'];
-		$file_size =$_FILES['testFile']['size'];
-		$file_tmp =$_FILES['testFile']['tmp_name'];
-		$file_type=$_FILES['testFile']['type'];
-		$file_ext=strtolower(end(explode('.',$_FILES['testFile']['name'])));
+		$file_size = $_FILES['testFile']['size'];
+		$file_tmp  = $_FILES['testFile']['tmp_name'];
+		$file_type = $_FILES['testFile']['type'];
+		$file_ext  = strtolower(end(explode('.',$_FILES['testFile']['name'])));
 
 		$extensions= array("txt"); //Declare array for allowing more than one file type in future
 
@@ -87,10 +77,29 @@ if (isset($_POST["frmSubmit"])){
 			if (!file_exists($file_path)) {
 				mkdir($file_path, 0777, true);
 			}
-			move_uploaded_file($file_tmp, $test_dataset_directory.$file_name);
-			echo "File is succesfully uploaded. ";
+
+			$final_file_name = microtime(true)  . "_" .  $file_name;
+			$fully_qualified_path = $file_path . "/" . $final_file_name;
+			$_SESSION["FileInfo"]["TestFile"] =  $fully_qualified_path;
+
+			//Insert a record in the db for uploaded file for the user
+			$insert_array = array(
+				"FileNameGiven" => "",
+				"FileName" => $file_name,
+				"FileType" => "test",
+				"FilePath" => $fully_qualified_path,
+				"UserId" => $user_id_session,
+				"UpdateDate" => date("Y-m-d H:i:s"),
+				"UpdateBy" => $user_id_session
+			);
+			if ($con->insert("UserFiles", $insert_array) == 1){
+				move_uploaded_file($file_tmp, $fully_qualified_path);
+				$msg = "Test file succesfully uploaded.";
+			} else {
+				$error = "Something went wrong. File upload failed.";
+			}
 		}else{
-			echo $error;
+			//Nothing happens
 		}
 	}
 }
@@ -98,18 +107,21 @@ if (isset($_POST["frmSubmit"])){
 //Run predict command
 //Redirect to result page
 if (isset($_POST["predictSubmit"])){
+	$ModelFile = $models_directory . "/" . $user_id_session . "/" . $TargetFile;
+	$TestFile = $_SESSION["FileInfo"]["TestFile"];
 
-	//Grab test file
-	$test_files = scandir($test_dataset_directory);
-	$test_file = $test_files[2];
+	echo "working";
+	echo $ModelFile; echo "<br />";
 
-	//Grab training files
-	$training_files = scandir($files_directory);
-	$training_file = $training_files[3];
+	//Create directory for the user if not yet created
+	$file_path =  $output_directory . $_SESSION['user_id'] . "/";
+	if (!file_exists($file_path)) {
+		mkdir($file_path, 0777, true);
+	}
 
 	//Use generated model file in the previous step
 	//Write the output file to OutputFiles directory
-	shell_exec("../libsvm/./svm-predict " . $test_dataset_directory . $test_file . $dir . $ModelFile ." " . $output_directory . "output." .$training_file);
+	shell_exec("../libsvm/./svm-predict " . $TestFile . " " . $ModelFile ." " . $file_path . "output." .$TestFile);
 }
 ?>
 

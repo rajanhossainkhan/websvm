@@ -75,7 +75,7 @@ if (isset($_POST["frmSubmit"])){
 		 */
 		shell_exec("../libsvm/./svm-train " . $files_directory . $user_id_session . "/" . $TargetFile . " " . $file_path . "/" .$TargetFile .".model");
 		$msg = "Training is successfull. A model file is generated
-		<a href='predict.php?TargetFile=".$TargetFile."' class='btn btn-primary'> Proceed to Predict</a>";
+		<a href='predict.php?TargetFile=".$TargetFile.".model' class='btn btn-primary'> Proceed to Predict</a>";
 	} else {
 		$err = "Something went wrong. Training failed.";
 	}
