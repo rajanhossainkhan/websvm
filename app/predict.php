@@ -80,7 +80,8 @@ if (isset($_POST["frmSubmit"])){
 
 			$final_file_name = microtime(true)  . "_" .  $file_name;
 			$fully_qualified_path = $file_path . "/" . $final_file_name;
-			$_SESSION["FileInfo"]["TestFile"] =  $fully_qualified_path;
+			$_SESSION["FileInfo"]["TestFile"] =  $final_file_name;
+			$_SESSION["FileInfo"]["TestFilePath"] =  $fully_qualified_path;
 
 			//Insert a record in the db for uploaded file for the user
 			$insert_array = array(
@@ -107,11 +108,9 @@ if (isset($_POST["frmSubmit"])){
 //Run predict command
 //Redirect to result page
 if (isset($_POST["predictSubmit"])){
-	$ModelFile = $models_directory . "/" . $user_id_session . "/" . $TargetFile;
+	$ModelFile = $models_directory . $user_id_session . "/" . $TargetFile;
 	$TestFile = $_SESSION["FileInfo"]["TestFile"];
-
-	echo "working";
-	echo $ModelFile; echo "<br />";
+	$TestFilePath = $_SESSION["FileInfo"]["TestFilePath"];
 
 	//Create directory for the user if not yet created
 	$file_path =  $output_directory . $_SESSION['user_id'] . "/";
@@ -121,7 +120,23 @@ if (isset($_POST["predictSubmit"])){
 
 	//Use generated model file in the previous step
 	//Write the output file to OutputFiles directory
-	shell_exec("../libsvm/./svm-predict " . $TestFile . " " . $ModelFile ." " . $file_path . "output." .$TestFile);
+	shell_exec("../libsvm/./svm-predict " . $TestFilePath . " " . $ModelFile ." " . $file_path . "output." .$TestFile);
+
+	//Insert a record in the db for uploaded file for the user
+	$insert_array = array(
+		"FileNameGiven" => "",
+		"FileName" => "output." .$TestFile;
+		"FileType" => "output",
+		"FilePath" => $file_path . "output." .$TestFile,
+		"UserId" => $user_id_session,
+		"UpdateDate" => date("Y-m-d H:i:s"),
+		"UpdateBy" => $user_id_session
+	);
+	if ($con->insert("UserFiles", $insert_array) == 1){
+		$msg = "Prediction successfully completed.";
+	} else {
+		$error = "Something went wrong. Prediction failed.";
+	}
 }
 ?>
 
