@@ -18,7 +18,6 @@ if (!isset($_SESSION['user_id'])){
 }
 
 
-
 //Check the user from session and find reight directory
 //Grab the file name from URL and use it to predict
 $TargetFile = "";
@@ -105,9 +104,16 @@ if (isset($_POST["frmSubmit"])){
 	}
 }
 
+$CommandOutput = "";
+
 //Run predict command
 //Redirect to result page
 if (isset($_POST["predictSubmit"])){
+	extract($_POST);
+
+	$ProbEstimate = "";
+
+
 	$ModelFile = $models_directory . $user_id_session . "/" . $TargetFile;
 	$TestFile = $_SESSION["FileInfo"]["TestFile"];
 	$TestFilePath = $_SESSION["FileInfo"]["TestFilePath"];
@@ -120,12 +126,18 @@ if (isset($_POST["predictSubmit"])){
 
 	//Use generated model file in the previous step
 	//Write the output file to OutputFiles directory
-	shell_exec("../libsvm/./svm-predict " . $TestFilePath . " " . $ModelFile ." " . $file_path . "output." .$TestFile);
+	//For options, add if available.
+	if (isset($ProbabilisticEstimate) && $ProbabilisticEstimate == 'on'){
+		$ProbEstimate = "-b 1";
+	}
+
+	$CommandOutput = shell_exec("../libsvm/./svm-predict {$ProbEstimate} {$TestFilePath} {$ModelFile} {$file_path}output.{$TestFile}");
+
 
 	//Insert a record in the db for uploaded file for the user
 	$insert_array = array(
 		"FileNameGiven" => "",
-		"FileName" => "output." .$TestFile;
+		"FileName" => "output." .$TestFile,
 		"FileType" => "output",
 		"FilePath" => $file_path . "output." .$TestFile,
 		"UserId" => $user_id_session,
@@ -159,8 +171,16 @@ if (isset($_POST["predictSubmit"])){
 		</form>
 
 		<form method='post'>
+			<input type='checkbox' name="ProbabilisticEstimate"> Turn on probablistic estimate (-b 1) (?)
+			<br /><br />
 			<input type='submit' name='predictSubmit' class='btn btn-primary' value='Run Predict Command'>
 		</form>
+
+		<?php if ($CommandOutput != "") { ?>
+			<div style="height: 50px; width: 100%; background-color: black; color: white; padding: 10px 10px 10px 10px;">
+				<?php echo $CommandOutput; ?>
+			</div>
+		<?php } ?>
 	</div>
 </body>
 </html>
