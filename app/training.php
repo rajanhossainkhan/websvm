@@ -93,41 +93,32 @@ if (isset($_POST['frmSubmitAuto'])){
 
 	//Create a directory or check exisiting
 	//Create directory for the user if not yet created
-	$file_path = '../LearningModels/' . $_SESSION['user_id'];
+	$file_path = '../AutomaticFiles/' . $_SESSION['user_id'] . '/';
 	if (!file_exists($file_path)) {
 		mkdir($file_path, 0777, true);
-	}
-	echo $fully_qualified_path = $file_path . "/" . $TargetFile . ".model";
-
-	//Easy.py command generates and output
-	//The filename has an scale.out added at the end of it.
-	$file_path_output = '../OutputFiles/' . $_SESSION['user_id'];
-	if (!file_exists($file_path_output)) {
-		mkdir($file_path_output, 0777, true);
-	}
-	echo $fully_qualified_path_output = $file_path_output . "/" . $TargetFile . "scale.out";
-	exit();
-
+	}	
 
 	//Make record in database
 	//Insert a record in the db for uploaded file for the user
 	$insert_array = array(
 		"FileNameGiven" => $trainingFileTitle,
 		"FileName" => $FileNameOnly_final,
-		"FileType" => "model",
-		"FilePath" => $fully_qualified_path,
+		"FileType" => "Auto",
+		"FilePath" => $file_path,
 		"UserId" => $user_id_session,
 		"UpdateDate" => date("Y-m-d H:i:s"),
 		"UpdateBy" => $user_id_session
 	);
 	if ($con->insert("UserFiles", $insert_array) == 1){
 		/**
-		 * Assume uploaded file is a right svm file
-		 * Run train command against it.
+		 * Run easy.py command
+		 * Filenames should have the user ID associated with it
+		 * Move the target files [specific files generated in current session]
+		 * To AutomaticFiles for each user  
 		 */
 		shell_exec("../libsvm/./svm-train " . $files_directory . $user_id_session . "/" . $TargetFile . " " . $file_path . "/" .$TargetFile .".model");
-		$msg = "Training is successfull. A model file is generated
-		<a href='predict.php?TargetFile=".$TargetFile.".model' class='btn btn-primary'> Proceed to Predict</a>";
+		$msg = "Process is successfull. All required files are  generated.
+		<a href='predict.php?TargetFile=".$TargetFile.".model' class='btn btn-primary'> Output</a>";
 	} else {
 		$err = "Something went wrong. Training failed.";
 	}
