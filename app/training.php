@@ -120,7 +120,7 @@ if (isset($_POST['frmSubmitAuto'])){
 		shell_exec($full_command);
 
 		$msg = "Process is successfull. All required files are  generated.
-		<a href='' class='btn btn-primary'>Browse Output Files</a>";
+		<a href='AutomaticFilesList.php' class='btn btn-primary'>Browse Output Files</a>"
 	} else {
 		$err = "Something went wrong. Training failed.";
 	}
