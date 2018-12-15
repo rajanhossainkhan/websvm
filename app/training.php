@@ -85,7 +85,6 @@ if (isset($_POST["frmSubmit"])){
 }
 
 if (isset($_POST['frmSubmitAuto'])){
-	echo "Working";
 	/**
 	 * Check the directory before running the training command
 	 * Depending on the file size, trainign might take longer time
@@ -112,31 +111,19 @@ if (isset($_POST['frmSubmitAuto'])){
 	if ($con->insert("UserFiles", $insert_array) == 1){
 		/**
 		 * Run easy.py command
-		 * Filenames should have the user ID associated with it
-		 * Move the target files [specific files generated in current session]
-		 * To AutomaticFiles for each user  
+		 * Easy.py is now updated to support output location
 		 */
-		shell_exec("../libsvm/./svm-train " . $files_directory . $user_id_session . "/" . $TargetFile . " " . $file_path . "/" .$TargetFile .".model");
+		$target_path = $files_directory.$user_id_session."/".$TargetFile;
+		$full_command = "../libsvm/tools/./easy.py ";
+		$full_command .= $target_path . " " . $target_path . " " . $file_path;		
+
+		shell_exec($full_command);
+
 		$msg = "Process is successfull. All required files are  generated.
-		<a href='predict.php?TargetFile=".$TargetFile.".model' class='btn btn-primary'> Output</a>";
+		<a href='' class='btn btn-primary'>Browse Output Files</a>";
 	} else {
 		$err = "Something went wrong. Training failed.";
 	}
-
-	//Make record of output file (SVM) in the db
-	//Easy.py, unlike default prediction model,
-	//performs cross validation and parameter tuning
-	//Output file would contain the combination of C and G.
-	$insert_array = array(
-		"FileNameGiven" => "",
-		"FileName" => $TargetFile . ".scale.out",
-		"FileType" => "output",
-		"FilePath" => $fully_qualified_path,
-		"UserId" => $user_id_session,
-		"UpdateDate" => date("Y-m-d H:i:s"),
-		"UpdateBy" => $user_id_session
-	);
-	$con->insert("UserFiles",$insert_array);
 }
 ?>
 

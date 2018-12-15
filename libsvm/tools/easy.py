@@ -12,10 +12,10 @@ if len(sys.argv) <= 1:
 
 is_win32 = (sys.platform == 'win32')
 if not is_win32:
-	svmscale_exe = "../svm-scale"
-	svmtrain_exe = "../svm-train"
-	svmpredict_exe = "../svm-predict"
-	grid_py = "./grid.py"
+	svmscale_exe = "../libsvm/svm-scale" #app-specific location edit
+	svmtrain_exe = "../libsvm/svm-train" #app-specific location edit
+	svmpredict_exe = "../libsvm/svm-predict" #app-specific location edit
+	grid_py = "../libsvm/tools/./grid.py" #app specific location edit
 	gnuplot_exe = "/usr/local/Cellar/gnuplot/5.2.0/bin/gnuplot"
 else:
         # example for windows
@@ -31,12 +31,18 @@ assert os.path.exists(svmpredict_exe),"svm-predict executable not found"
 assert os.path.exists(gnuplot_exe),"gnuplot executable not found"
 assert os.path.exists(grid_py),"grid.py not found"
 
+#Add support for custom location - as argument 3
+custom_pathname = ""
+if len(sys.argv) > 3:
+	custom_pathname = sys.argv[3]
+	custom_pathname = custom_pathname.strip()
+
 train_pathname = sys.argv[1]
 assert os.path.exists(train_pathname),"training file not found"
 file_name = os.path.split(train_pathname)[1]
-scaled_file = file_name + ".scale"
-model_file = file_name + ".model"
-range_file = file_name + ".range"
+scaled_file = custom_pathname + file_name + ".scale"
+model_file = custom_pathname + file_name + ".model"
+range_file = custom_pathname + file_name + ".range"
 
 if len(sys.argv) > 2:
 	test_pathname = sys.argv[2]
