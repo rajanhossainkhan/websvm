@@ -85,45 +85,59 @@ if (isset($_POST["frmSubmit"])){
 }
 
 if (isset($_POST['frmSubmitAuto'])){
-	/**
-	 * Check the directory before running the training command
-	 * Depending on the file size, trainign might take longer time
-	 */
-
-	//Create a directory or check exisiting
+    
+   	//Create a directory or check exisiting
 	//Create directory for the user if not yet created
 	$file_path = '../AutomaticFiles/' . $_SESSION['user_id'] . '/';
 	if (!file_exists($file_path)) {
 		mkdir($file_path, 0777, true);
 	}	
+    
+    
+    /*
+    *Generate GUID as reference number
+    *All files generated in a single session of easy.py
+    *are referenced by this number in db
+    *A single process is identifiable this way with
+    *training, testing, scaling, model and outfile files
+    */
+    $fail_flag = 0;
+    $reference_number = uniqid();
+    $file_name_array = array("{$TargetFile}.model","{$TargetFile}.scale", "{$TargetFile}.range");
+    foreach ($file_name_array as $item){
+        $file_path_full = $file_path . "/" . $item;
+       	$insert_array = array(
+		    "FileNameGiven" => $trainingFileTitle,
+		    "FileName" => $item,
+		    "FileType" => "Auto",
+		    "FilePath" => $file_path_full,
+		    "UserId" => $user_id_session,
+		    "UpdateDate" => date("Y-m-d H:i:s"),
+		    "UpdateBy" => $user_id_session,
+            "reference_number" => $reference_number
+        );
+        if ($con->insert("UserFiles", $insert_array) == 1){
+            //Nothing happens
+        } else {
+            $fail_flag = 1;
+        }
+    }    
+   
+    /**
+	* Run easy.py command
+	* Easy.py is now updated to support output location
+	*/
+	$target_path = $files_directory.$user_id_session."/".$TargetFile;
+	$full_command = "../libsvm/tools/./easy.py ";
+	$full_command .= $target_path . " " . $target_path . " " . $file_path;		
+     
+    //execute the command
+	shell_exec($full_command);
+    
+    //Display message with reference number in link
+	$msg = "Process is successfull. All required files are  generated.
+		<a href='AutomaticFilesList.php?ref={$reference_number}' class='btn btn-primary'>Browse Output Files</a>";
 
-	//Make record in database
-	//Insert a record in the db for uploaded file for the user
-	$insert_array = array(
-		"FileNameGiven" => $trainingFileTitle,
-		"FileName" => $FileNameOnly_final,
-		"FileType" => "Auto",
-		"FilePath" => $file_path,
-		"UserId" => $user_id_session,
-		"UpdateDate" => date("Y-m-d H:i:s"),
-		"UpdateBy" => $user_id_session
-	);
-	if ($con->insert("UserFiles", $insert_array) == 1){
-		/**
-		 * Run easy.py command
-		 * Easy.py is now updated to support output location
-		 */
-		$target_path = $files_directory.$user_id_session."/".$TargetFile;
-		$full_command = "../libsvm/tools/./easy.py ";
-		$full_command .= $target_path . " " . $target_path . " " . $file_path;		
-
-		shell_exec($full_command);
-
-		$msg = "Process is successfull. All required files are  generated.
-		<a href='AutomaticFilesList.php' class='btn btn-primary'>Browse Output Files</a>"
-	} else {
-		$err = "Something went wrong. Training failed.";
-	}
 }
 ?>
 
