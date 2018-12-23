@@ -23,6 +23,17 @@ if (!isset($_SESSION['user_id'])){
 	$user_id_session = $_SESSION["user_id"];
 }
 
+//Collect ref number from URL
+$reference_number = "";
+if (isset($_GET["ref"])){
+	$reference_number = $_GET["ref"];
+}
+if ($reference_number != ""){
+	$autofiles = $con->SelectAllByCondition("UserFiles", "reference_number='$reference_number' AND UserId='$user_id_session'");
+}else{
+	$autofiles = array();
+}
+
 //Fetch data for user
 $files = scandir("../AutomaticFiles/{$user_id_session}");
 ?>
@@ -33,11 +44,9 @@ $files = scandir("../AutomaticFiles/{$user_id_session}");
 <div class="col-md-12">
 <?php 
 	echo "<h4>List of files: </h4>";
-	foreach ($files as $key=>$val){
-		if ($key > 2){
-			echo $val;
-			echo "<hr />";
-		}
+	foreach ($autofiles as $file){
+		echo $file->FileName;
+		echo "<hr/>";	
 	}
 ?>
 </div>

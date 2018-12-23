@@ -31,8 +31,8 @@ class GridOption:
 		self.grid_with_c, self.grid_with_g = True, True
 		self.dataset_pathname = dataset_pathname
 		self.dataset_title = os.path.split(dataset_pathname)[1]
-		self.out_pathname = '{0}.out'.format(self.dataset_title)
-		self.png_pathname = '{0}.png'.format(self.dataset_title)
+		self.out_pathname = '{0}.out'.format(self.dataset_title) #modified to test
+		self.png_pathname = '{0}.png'.format(self.dataset_title) #modfied to test
 		self.pass_through_string = ' '
 		self.resume_pathname = None
 		self.parse_options(options)

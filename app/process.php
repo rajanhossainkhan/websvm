@@ -31,6 +31,9 @@ if (isset($_POST["frmSubmit"])){
 	if(isset($_FILES['trainingFile'])){
 		$errors = "";
 
+		//Generate a reference number and appened to file name
+		$reference_number = uniqid();
+
 		//Retrieve file information and save into db
 		$file_name = $_FILES['trainingFile']['name'];
 		$file_size =$_FILES['trainingFile']['size'];
@@ -51,7 +54,7 @@ if (isset($_POST["frmSubmit"])){
 				mkdir($file_path, 0777, true);
 			}
 
-			$final_file_name = microtime(true)  . "_" .  $file_name;
+			$final_file_name = $reference_number . "_" . microtime(true)  . "_" .  $file_name;
 			$fully_qualified_path = $file_path . "/" . $final_file_name;
 
 			//Insert a record in the db for uploaded file for the user
@@ -67,7 +70,7 @@ if (isset($_POST["frmSubmit"])){
 			if ($con->insert("UserFiles", $insert_array) == 1){
 				//Upload file to target directory
 				move_uploaded_file($file_tmp,$fully_qualified_path);
-				$msg = "File is succesfully uploaded. <a href='training.php?TargetFile=".$final_file_name."' class='btn btn-primary'>Proceed to Training Page</a>";
+				$msg = "File is succesfully uploaded. <a href='training.php?TargetFile=".$final_file_name."&ref=".$reference_number."' class='btn btn-primary'>Proceed to Training Page</a>";
 			} else {
 				$err = "File upload failed.";
 			}

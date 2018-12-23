@@ -84,6 +84,11 @@ if (isset($_POST["frmSubmit"])){
 	<a href='predict.php?TargetFile=".$TargetFile.".model' class='btn btn-primary'> Proceed to Result</a>";
 }
 
+$reference_number = "";
+if (isset($_GET["ref"])){
+	$reference_number = $_GET["ref"];
+}
+
 if (isset($_POST['frmSubmitAuto'])){
     
    	//Create a directory or check exisiting
@@ -102,7 +107,6 @@ if (isset($_POST['frmSubmitAuto'])){
     *training, testing, scaling, model and outfile files
     */
     $fail_flag = 0;
-    $reference_number = uniqid();
     $file_name_array = array("{$TargetFile}.model","{$TargetFile}.scale", "{$TargetFile}.range");
     foreach ($file_name_array as $item){
         $file_path_full = $file_path . "/" . $item;
@@ -129,11 +133,28 @@ if (isset($_POST['frmSubmitAuto'])){
 	*/
 	$target_path = $files_directory.$user_id_session."/".$TargetFile;
 	$full_command = "../libsvm/tools/./easy.py ";
-	$full_command .= $target_path . " " . $target_path . " " . $file_path;		
+	$full_command .= $target_path . " " . $target_path . " " . $file_path;
      
     //execute the command
 	shell_exec($full_command);
-    
+
+	//Few files are generated in app directory because of grid.py
+    //Originally easy.py does work without any such problem.
+	//Move all these files to designated directory
+	//Build the file names based on training filenames in the URL
+	$cv_predict =  $TargetFile . ".predict"; //cv for cross validation
+	$cv_scale = $TargetFile . ".scale";
+	$cv_out = $TargetFile . ".out";
+	$cv_performance_vector = $TargetFile . ".png"; // .png file is the measured performance vector
+
+	rename($cv_predict, "../AutomaticFiles/{$user_id_session}/{$cv_predict}"; //cv - cross validation
+	rename($cv_scale, "../AutomaticFiles/{$user_id_session}/{$cv_scale}";
+	rename($cv_out, "../AutomaticFiles/{$user_id_session}/{$cv_out}";
+	rename($cv_performance_vector, "../AutomaticFiles/{$user_id_session}/{$cv_performance_vector}";
+
+	//Store these new entries pathnames in db as filetype - auto 
+	
+ 
     //Display message with reference number in link
 	$msg = "Process is successfull. All required files are  generated.
 		<a href='AutomaticFilesList.php?ref={$reference_number}' class='btn btn-primary'>Browse Output Files</a>";
