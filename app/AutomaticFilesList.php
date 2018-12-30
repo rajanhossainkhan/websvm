@@ -44,9 +44,13 @@ $files = scandir("../AutomaticFiles/{$user_id_session}");
 <div class="col-md-12">
 <?php 
 	echo "<h4>List of files: </h4>";
+	echo "<table>";
 	foreach ($autofiles as $file){
-		echo $file->FileName;
-		echo "<hr/>";	
+		echo "<tr>";
+		echo "<td>" .$file->FileName . "</td>";
+		echo "<td style='padding-left:10px;'><a href='{$file->FilePath}' target='_blank'  class='btn btn-primary btn-sm'>Download</a></td>";
+		echo "</tr>";	
 	}
+	echo "</table>";
 ?>
 </div>

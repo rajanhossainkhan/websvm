@@ -109,7 +109,7 @@ if (isset($_POST['frmSubmitAuto'])){
     $fail_flag = 0;
     $file_name_array = array("{$TargetFile}.model","{$TargetFile}.scale", "{$TargetFile}.range");
     foreach ($file_name_array as $item){
-        $file_path_full = $file_path . "/" . $item;
+        $file_path_full = $file_path . $item;
        	$insert_array = array(
 		    "FileNameGiven" => $trainingFileTitle,
 		    "FileName" => $item,
@@ -144,16 +144,37 @@ if (isset($_POST['frmSubmitAuto'])){
 	//Build the file names based on training filenames in the URL
 	$cv_predict =  $TargetFile . ".predict"; //cv for cross validation
 	$cv_scale = $TargetFile . ".scale";
-	$cv_out = $TargetFile . ".out";
-	$cv_performance_vector = $TargetFile . ".png"; // .png file is the measured performance vector
+	$cv_out = $TargetFile . ".scale.out";
+	$cv_performance_vector = $TargetFile . ".scale.png"; // .png file is the measured performance vector
 
-	rename($cv_predict, "../AutomaticFiles/{$user_id_session}/{$cv_predict}"; //cv - cross validation
-	rename($cv_scale, "../AutomaticFiles/{$user_id_session}/{$cv_scale}";
-	rename($cv_out, "../AutomaticFiles/{$user_id_session}/{$cv_out}";
-	rename($cv_performance_vector, "../AutomaticFiles/{$user_id_session}/{$cv_performance_vector}";
+	rename($cv_predict, "../AutomaticFiles/{$user_id_session}/{$cv_predict}"); //cv - cross validation
+	rename($cv_scale, "../AutomaticFiles/{$user_id_session}/{$cv_scale}");
+	rename($cv_out, "../AutomaticFiles/{$user_id_session}/{$cv_out}");
+	rename($cv_performance_vector, "../AutomaticFiles/{$user_id_session}/{$cv_performance_vector}");
 
 	//Store these new entries pathnames in db as filetype - auto 
+	//Use the same reference number to track them
 	
+	$fail_flag =  0;
+	$file_name_array = array($cv_predict, $cv_scale, $cv_out, $cv_performance_vector);
+	foreach ($file_name_array as $item){
+		$file_path_full = $file_path . $item;
+       	$insert_array = array(
+		    "FileNameGiven" => $trainingFileTitle,
+		    "FileName" => $item,
+		    "FileType" => "Auto",
+		    "FilePath" => $file_path_full, //remove ../ from begining of file name
+		    "UserId" => $user_id_session,
+		    "UpdateDate" => date("Y-m-d H:i:s"),
+		    "UpdateBy" => $user_id_session,
+            "reference_number" => $reference_number
+        );
+        if ($con->insert("UserFiles", $insert_array) == 1){
+            //Nothing happens
+        } else {
+            $fail_flag = 1;
+        }
+	}
  
     //Display message with reference number in link
 	$msg = "Process is successfull. All required files are  generated.
