@@ -48,7 +48,7 @@ if (isset($_POST["frmSubmit"])){
 	 * Check the directory before running the training command
 	 * Depending on the file size, trainign might take longer time
 	 */
-	
+
 
 	//Create a directory or check exisiting
 	//Create directory for the user if not yet created
@@ -64,7 +64,7 @@ if (isset($_POST["frmSubmit"])){
 	* Run train command against it.
 	*/
 	shell_exec("../libsvm/./svm-train " . $files_directory . $user_id_session . "/" . $TargetFile);
-	
+
 	//Based on the output from the shell,
 	//Determine if the process completed successfully
 
@@ -79,7 +79,7 @@ if (isset($_POST["frmSubmit"])){
 		"UpdateBy" => $user_id_session
 	);
 	$con->insert("UserFiles", $insert_array);
-	
+
 		$msg = "Classification is successfull. A result file is generated
 	<a href='predict.php?TargetFile=".$TargetFile.".model' class='btn btn-primary'> Proceed to Result</a>";
 }
@@ -89,16 +89,72 @@ if (isset($_GET["ref"])){
 	$reference_number = $_GET["ref"];
 }
 
+
 if (isset($_POST['frmSubmitAuto'])){
-    
+
+
+	$final_file_name = "";
+	$fully_qualified_path = "";
+	//See if test file was uploaded
+	if (isset($_FILES['TestFileAuto'])){
+
+		//Retrieve file information and save into db
+		$file_name = $_FILES['TestFileAuto']['name'];
+		$file_size =$_FILES['TestFileAuto']['size'];
+		$file_tmp =$_FILES['TestFileAuto']['tmp_name'];
+		$file_type=$_FILES['TestFileAuto']['type'];
+		$file_ext=strtolower(end(explode('.',$_FILES['TestFileAuto']['name'])));
+
+		$extensions= array("txt"); //Declare array for allowing more than one file type in future
+
+		if(in_array($file_ext,$extensions)=== false){
+			$error ="Extension not allowed, please choose a txt file to train your model.";
+		}
+
+
+		if($error == ""){
+
+			//Create directory for the user if not yet created
+			//Create a directory or check exisiting
+			//Create directory for the user if not yet created
+			$file_path_test = '../TestDatasets/' . $_SESSION['user_id'] . '/';
+			if (!file_exists($file_path)) {
+				mkdir($file_path_test, 0777, true);
+			}
+
+			$final_file_name = $reference_number . "_" . microtime(true)  . "_" .  $file_name;
+			$fully_qualified_path = $file_path_test . "/" . $final_file_name;
+
+			//Insert a record in the db for uploaded file for the user
+			$insert_array = array(
+				"FileNameGiven" => $trainingFileTitle,
+				"FileName" => $final_file_name,
+				"FileType" => "test",
+				"FilePath" => $fully_qualified_path,
+				"UserId" => $user_id_session,
+				"UpdateDate" => date("Y-m-d H:i:s"),
+				"UpdateBy" => $user_id_session,
+				"reference_number" => $reference_number
+			);
+			if ($con->insert("UserFiles", $insert_array) == 1){
+				//Upload file to target directory
+				move_uploaded_file($file_tmp,$fully_qualified_path);
+			} else {
+				$err = "File upload failed.";
+			}
+		}else{
+
+		}
+	}
+
    	//Create a directory or check exisiting
 	//Create directory for the user if not yet created
 	$file_path = '../AutomaticFiles/' . $_SESSION['user_id'] . '/';
 	if (!file_exists($file_path)) {
 		mkdir($file_path, 0777, true);
-	}	
-    
-    
+	}
+
+
     /*
     *Generate GUID as reference number
     *All files generated in a single session of easy.py
@@ -125,16 +181,26 @@ if (isset($_POST['frmSubmitAuto'])){
         } else {
             $fail_flag = 1;
         }
-    }    
-   
+    }
+
     /**
 	* Run easy.py command
 	* Easy.py is now updated to support output location
+	* If a test file was uploaded, that would be used to test classification
+	* For no test file, training file would be used to predict
+	* This is due to modification in the easy.py code
+	* An idea is to add -loc as thir parameter and then
+	* output location as a fourth parameter.
+	* This is for later integration
 	*/
 	$target_path = $files_directory.$user_id_session."/".$TargetFile;
 	$full_command = "../libsvm/tools/./easy.py ";
-	$full_command .= $target_path . " " . $target_path . " " . $file_path;
-     
+	if ($fully_qualified_path == ""){
+		$full_command .= $target_path . " " . $target_path . " " . $file_path;
+	} else {
+		$full_command .= $target_path . " " . $fully_qualified_path . " " . $file_path;
+	}
+
     //execute the command
 	shell_exec($full_command);
 
@@ -147,14 +213,22 @@ if (isset($_POST['frmSubmitAuto'])){
 	$cv_out = $TargetFile . ".scale.out";
 	$cv_performance_vector = $TargetFile . ".scale.png"; // .png file is the measured performance vector
 
+	//Test file predict and scale
+	$cv_predict_test = $final_file_name . ".predict";
+	$cv_scale_test = $final_file_name . ".scale";
+
 	rename($cv_predict, "../AutomaticFiles/{$user_id_session}/{$cv_predict}"); //cv - cross validation
 	rename($cv_scale, "../AutomaticFiles/{$user_id_session}/{$cv_scale}");
 	rename($cv_out, "../AutomaticFiles/{$user_id_session}/{$cv_out}");
 	rename($cv_performance_vector, "../AutomaticFiles/{$user_id_session}/{$cv_performance_vector}");
 
-	//Store these new entries pathnames in db as filetype - auto 
+	//Move test file
+	rename($cv_predict_test, "../AutomaticFiles/{$user_id_session}/{$cv_predict_test}");
+	rename($cv_scale_test, "../AutomaticFiles/{$user_id_session}/{$cv_scale_test}");
+
+	//Store these new entries pathnames in db as filetype - auto
 	//Use the same reference number to track them
-	
+
 	$fail_flag =  0;
 	$file_name_array = array($cv_predict, $cv_scale, $cv_out, $cv_performance_vector);
 	foreach ($file_name_array as $item){
@@ -175,7 +249,7 @@ if (isset($_POST['frmSubmitAuto'])){
             $fail_flag = 1;
         }
 	}
- 
+
     //Display message with reference number in link
 	$msg = "Process is successfull. All required files are  generated.
 		<a href='AutomaticFilesList.php?ref={$reference_number}' class='btn btn-primary'>Browse Output Files</a>";
@@ -189,16 +263,38 @@ if (isset($_POST['frmSubmitAuto'])){
 
 	<div class="col-md-12" style="font-size:12px;">
 		<?php echo $msg; ?>
-		<form method="POST">
+		<form method="POST" enctype="multipart/form-data">
 			Uploaded Sparse Matrix File-
 			<span style="color:blue; font-size:18px; font-weight: bold;">
 				<?php echo  $FileNameOnly_final;?>
 			</span>
+
 		    <br />
 		    <br />
+
 		    <input type="submit" value="Run Train Command" name="frmSubmit" class="btn btn-primary">
-		    <input type="submit" value="Run Automated Classification" name="frmSubmitAuto" class="btn btn-primary">
+		    <input type="button" id="ShowTestFileUpload" value="Run Automated Classification" name="frmSubmitAuto" class="btn btn-primary">
+
+		    <br />
+		    <br />
+		    <div style="display: none;" id="UploadTestFile">
+		    	<span>* Test file will be used for prediction against the trained model. An accuracy rate will be generated at the end of the process. </span> <br /><br />
+				<label>Upload Test File <b>[Optional]</b></label><br />
+
+
+				<input type="file" name="TestFileAuto"/>
+			</div>
+			<br />
+			 <input type="submit" value="Run Classification" name="frmSubmitAuto" class="btn btn-primary">
 		</form>
 	</div>
 </body>
 </html>
+
+<script type="text/javascript">
+	$(document).ready(function() {
+		$("#ShowTestFileUpload").click(function(){
+			$("#UploadTestFile").show();
+		});
+	});
+</script>

@@ -30,6 +30,8 @@ if (isset($_GET["ref"])){
 }
 if ($reference_number != ""){
 	$autofiles = $con->SelectAllByCondition("UserFiles", "reference_number='$reference_number' AND UserId='$user_id_session'");
+	//Remove first element
+	array_shift($autofiles);
 }else{
 	$autofiles = array();
 }
@@ -43,21 +45,21 @@ $file_path = "../AutomaticFiles/{$user_id_session}/";
 
 <div class="row">
 <div class="col-md-6" style="padding-left:35px;">
-<?php 
+<?php
 	echo "<h4>List of files: </h4>";
 	echo "<table style='width:90%;'>";
 	foreach ($autofiles as $file){
 		echo "<tr>";
 		echo "<td>" .$file->FileName . "</td>";
 		echo "<td style='padding-left:10px;'><a href='{$file->FilePath}' target='_blank'  class='btn btn-primary btn-sm'>Download</a></td>";
-		echo "</tr>";	
+		echo "</tr>";
 	}
 	echo "</table>";
 ?>
 </div>
 <div class="col-md-6">
 	<h4 style="text-align:center;">Performance Vector</h4>
-	<img src="<?php echo $autofiles[6]->FilePath; ?>" style="height:600px; width:600px;">	
+	<img src="<?php echo $autofiles[6]->FilePath; ?>" style="height:600px; width:600px;">
 </div>
 <div class="clearfix"></div>
 </div>
