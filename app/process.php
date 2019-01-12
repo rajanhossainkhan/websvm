@@ -65,7 +65,8 @@ if (isset($_POST["frmSubmit"])){
 				"FilePath" => $fully_qualified_path,
 				"UserId" => $user_id_session,
 				"UpdateDate" => date("Y-m-d H:i:s"),
-				"UpdateBy" => $user_id_session
+				"UpdateBy" => $user_id_session,
+				"reference_number" => $reference_number
 			);
 			if ($con->insert("UserFiles", $insert_array) == 1){
 				//Upload file to target directory

@@ -29,6 +29,11 @@ if (isset($_GET["TargetFile"]) && $_GET["TargetFile"] != ""){
 	$FileNameOnly_final = implode($FileNameOnly_array, "_");
 }
 
+$reference_number = "";
+if (isset($_GET["ref"])){
+	$reference_number = $_GET["ref"];
+}
+
 /**
  * Read file directory and show the file to user
  * At this moment, only one file is available
@@ -77,7 +82,7 @@ if (isset($_POST["frmSubmit"])){
 				mkdir($file_path, 0777, true);
 			}
 
-			$final_file_name = microtime(true)  . "_" .  $file_name;
+			$final_file_name = $reference_number."_".microtime(true)  . "_" .  $file_name;
 			$fully_qualified_path = $file_path . "/" . $final_file_name;
 			$_SESSION["FileInfo"]["TestFile"] =  $final_file_name;
 			$_SESSION["FileInfo"]["TestFilePath"] =  $fully_qualified_path;
@@ -85,12 +90,13 @@ if (isset($_POST["frmSubmit"])){
 			//Insert a record in the db for uploaded file for the user
 			$insert_array = array(
 				"FileNameGiven" => "",
-				"FileName" => $file_name,
+				"FileName" => $final_file_name,
 				"FileType" => "test",
 				"FilePath" => $fully_qualified_path,
 				"UserId" => $user_id_session,
 				"UpdateDate" => date("Y-m-d H:i:s"),
-				"UpdateBy" => $user_id_session
+				"UpdateBy" => $user_id_session,
+				"reference_number" => $reference_number
 			);
 			if ($con->insert("UserFiles", $insert_array) == 1){
 				move_uploaded_file($file_tmp, $fully_qualified_path);
@@ -131,7 +137,9 @@ if (isset($_POST["predictSubmit"])){
 		$ProbEstimate = "-b 1";
 	}
 
-	$CommandOutput = shell_exec("../libsvm/./svm-predict {$ProbEstimate} {$TestFilePath} {$ModelFile} {$file_path}output.{$TestFile}");
+	$command = "../libsvm/./svm-predict {$ProbEstimate} {$TestFilePath} {$ModelFile} {$file_path}output.{$TestFile}";
+	$CommandOutput = shell_exec($command);
+
 
 
 	//Insert a record in the db for uploaded file for the user
@@ -142,7 +150,8 @@ if (isset($_POST["predictSubmit"])){
 		"FilePath" => $file_path . "output." .$TestFile,
 		"UserId" => $user_id_session,
 		"UpdateDate" => date("Y-m-d H:i:s"),
-		"UpdateBy" => $user_id_session
+		"UpdateBy" => $user_id_session,
+		"reference_number" => $reference_number
 	);
 	if ($con->insert("UserFiles", $insert_array) == 1){
 		$msg = "Prediction successfully completed.";

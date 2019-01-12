@@ -26,6 +26,7 @@ if (isset($_GET["TargetFile"]) && $_GET["TargetFile"] != ""){
 	$FileNameOnly_final = implode($FileNameOnly_array, "_");
 }
 
+
 /**
  * Read file directory and show the file to user
  */
@@ -63,7 +64,11 @@ if (isset($_POST["frmSubmit"])){
 	* Assume uploaded file is a right svm file
 	* Run train command against it.
 	*/
-	shell_exec("../libsvm/./svm-train " . $files_directory . $user_id_session . "/" . $TargetFile);
+	$shell_output  = shell_exec("../libsvm/./svm-train " . $files_directory . $user_id_session . "/" . $TargetFile);
+	if ($shell_output != ""){
+		rename($TargetFile . ".model", "../LearningModels/{$user_id_session}/{$TargetFile}.model");
+	}
+
 
 	//Based on the output from the shell,
 	//Determine if the process completed successfully
@@ -76,12 +81,13 @@ if (isset($_POST["frmSubmit"])){
 		"FilePath" => $fully_qualified_path,
 		"UserId" => $user_id_session,
 		"UpdateDate" => date("Y-m-d H:i:s"),
-		"UpdateBy" => $user_id_session
+		"UpdateBy" => $user_id_session,
+		"reference_number" => $reference_number
 	);
 	$con->insert("UserFiles", $insert_array);
 
 		$msg = "Classification is successfull. A result file is generated
-	<a href='predict.php?TargetFile=".$TargetFile.".model' class='btn btn-primary'> Proceed to Result</a>";
+	<a href='predict.php?TargetFile=".$TargetFile.".model&ref=".$reference_number."' class='btn btn-primary'> Proceed to Predict</a>";
 }
 
 $reference_number = "";
