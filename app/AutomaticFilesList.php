@@ -36,7 +36,7 @@ if ($reference_number != ""){
 	$autofiles = array();
 }
 
-$file_path = "../AutomaticFiles/{$user_id_session}/";
+$file_path = "../AutomaticFiles/{$user_id_session}/$reference_number/";
 ?>
 
 <!--User area-->
@@ -46,8 +46,10 @@ $file_path = "../AutomaticFiles/{$user_id_session}/";
 <div class="row">
 <div class="col-md-6" style="padding-left:35px;">
 <?php
+
 	echo "<h4>List of files: </h4>";
 	echo "<table style='width:90%;'>";
+
 	foreach ($autofiles as $file){
 		echo "<tr>";
 		echo "<td>" .$file->FileName . "</td>";
@@ -57,9 +59,10 @@ $file_path = "../AutomaticFiles/{$user_id_session}/";
 	echo "</table>";
 ?>
 </div>
+
 <div class="col-md-6">
 	<h4 style="text-align:center;">Performance Vector</h4>
-	<img src="<?php echo $autofiles[6]->FilePath; ?>" style="height:600px; width:600px;">
+	<img src="<?php echo $autofiles[7]->FilePath; ?>" style="height:600px; width:600px;">
 </div>
 <div class="clearfix"></div>
 </div>

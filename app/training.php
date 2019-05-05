@@ -155,7 +155,7 @@ if (isset($_POST['frmSubmitAuto'])){
 
    	//Create a directory or check exisiting
 	//Create directory for the user if not yet created
-	$file_path = '../AutomaticFiles/' . $_SESSION['user_id'] . '/';
+	$file_path = '../AutomaticFiles/' . $_SESSION['user_id'] . '/' . $reference_number . '/';
 	if (!file_exists($file_path)) {
 		mkdir($file_path, 0777, true);
 	}
@@ -223,14 +223,14 @@ if (isset($_POST['frmSubmitAuto'])){
 	$cv_predict_test = $final_file_name . ".predict";
 	$cv_scale_test = $final_file_name . ".scale";
 
-	rename($cv_predict, "../AutomaticFiles/{$user_id_session}/{$cv_predict}"); //cv - cross validation
-	rename($cv_scale, "../AutomaticFiles/{$user_id_session}/{$cv_scale}");
+	rename($cv_predict, "../AutomaticFiles/{$user_id_session}/{$reference_number}/{$cv_predict}"); //cv - cross validation
+	rename($cv_scale, "../AutomaticFiles/{$user_id_session}/{$reference_number}/{$cv_scale}");
 	rename($cv_out, "../AutomaticFiles/{$user_id_session}/{$cv_out}");
-	rename($cv_performance_vector, "../AutomaticFiles/{$user_id_session}/{$cv_performance_vector}");
+	rename($cv_performance_vector, "../AutomaticFiles/{$user_id_session}/{$reference_number}/{$cv_performance_vector}");
 
 	//Move test file
-	rename($cv_predict_test, "../AutomaticFiles/{$user_id_session}/{$cv_predict_test}");
-	rename($cv_scale_test, "../AutomaticFiles/{$user_id_session}/{$cv_scale_test}");
+	rename($cv_predict_test, "../AutomaticFiles/{$user_id_session}/{$reference_number}/{$cv_predict_test}");
+	rename($cv_scale_test, "../AutomaticFiles/{$user_id_session}/{$reference_number}/{$cv_scale_test}");
 
 	//Store these new entries pathnames in db as filetype - auto
 	//Use the same reference number to track them
